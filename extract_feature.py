@@ -3,10 +3,11 @@ import os
 import csv
 import numpy as np
 import logging
+import pickle
 
 def opensmile_extract(opensmile_path ,opensmile_config_path,wav_path,csv_tmp_file):
     if csv_tmp_file==None:
-        tmp_path='tmp'
+        tmp_path='tmp.csv'
     else:
         tmp_path=csv_tmp_file
     os.system(opensmile_path+' -C '+opensmile_config_path+' -I '+wav_path+' -O '+tmp_path)
@@ -43,24 +44,58 @@ class ExtractFeature():
                         warnings.warn("Because the value of the csv_tmp_file is missing," 
                                       " a tmp csv file will be created in current path."
                                       " Please ensure that you have read and write permissions for the current path.")
+                        self.csv_tmp_file = 'tmp.csv'
                     else:
                         self.csv_tmp_file = csv_tmp_file
+        self.IDs=[]
+        self.videoAudio=[]
+        self.videoLabels=[]
+        self.videoText=[]
+        self.videoVisual = []
+        self.Speaker = []
+        self.Sentence = []
 
-    def audio_feature_extract(self,wav_dir):
-        print(wav_dir)
-        exit()
-        total_features=[]
-        try:
-            for wav_file in os.listdir(wav_dir):
-                if wav_file.endswith('wav'):
-                    opensmile_extract(self.opensmile_path,self.opensmile_config_path,wav_file,self.csv_tmp_file)
-                    total_features.append(extract_from_csvfile(self.csv_tmp_file))
-        except:
-            raise ValueError('The value of wav_dir is not a legal path')
-        return np.array(total_features)
+    def audio_feature_extract(self,wav_scp):
+        wav_scp=open(wav_scp,'r')
+        for wav in wav_scp.readlines():
+            vid,wav_path=wav.split('\t')
+            opensmile_extract(self.opensmile_path,self.opensmile_config_path,wav_path,self.csv_tmp_file)
+            self.videoAudio[vid]=extract_from_csvfile(self.csv_tmp_file)
+
+
+    def text_feature_extract(self,trans):
+        trans = open(trans, 'r')
+        for every_line in trans.readlines():
+            vid, sentence = every_line.split('\t')
+            self.Sentence[vid]=sentence
+            #pretrain_extract
+
+
+    def convert_label_file(self,wav_label):
+        wav_label = open(wav_label, 'r')
+        for label in wav_label.readlines():
+            vid, emotion_label = label.split('\t')
+            self.videoLabels[vid]=emotion_label
+
+    def convert_speaker_file(self,wav_speaker):
+        wav_speaker = open(wav_speaker, 'r')
+        for label in wav_speaker.readlines():
+            vid, speaker_ID = label.split('\t')
+            self.Speaker[vid] = speaker_ID
+
+    def done(self):
+        pickle.dump(
+            (self.IDs, self.Speaker, self.videoLabels, self.videoText, self.videoAudio, self.videoVisual, self.Sentence,
+             trainVid, testVid),
+            open("./IEMOCAP_features_HubertBertText4_Class.pkl", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
 if __name__=='__main__':
-    opensmile_path=r'D:\software\openSMILE\SMILExtract.exe'
-    opensmile_config_path=r'D:\software\openSMILE\config\IS09_emotion.conf'
+    #opensmile_path=r'D:\software\openSMILE\SMILExtract.exe'
+    opensmile_path=r'E:\NLP\SpeechEmotion\demo\openSMILE\SMILExtract.exe'
+    #opensmile_config_path=r'D:\software\openSMILE\config\IS09_emotion.conf'
+    opensmile_config_path=r'E:\NLP\SpeechEmotion\demo\openSMILE\config\IS09_emotion.conf'
+    wav_scp=r'E:\NLP\SpeechEmotion\dataset\extract_script_test\test.scp'
+    wav_label=r'E:\NLP\SpeechEmotion\dataset\extract_script_test\label.scp'
     extractor=ExtractFeature('audio',opensmile_path,opensmile_config_path)
-    extractor.audio_feature_extract('dir')
+    audio_feature=extractor.audio_feature_extract(r'E:\NLP\SpeechEmotion\dataset\extract_script_test')
+    print(audio_feature.shape)
