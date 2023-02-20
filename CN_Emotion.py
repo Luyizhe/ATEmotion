@@ -5,9 +5,11 @@ import argparse
 import LoadData
 from torch.utils.data import Dataset, DataLoader
 from train_test import *
+import ATEmotion
 
 
-if __name__ == "__main__":
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--outfile', type=str, default="tmp.txt", help='output confusion matrix to a file')
     parser.add_argument('--modal', type=str, default="audio", help='choose "text","audio","multi"')
@@ -80,3 +82,5 @@ if __name__ == "__main__":
 
     train_and_test(train_loader, test_loader, model, optimizer, num_epochs, wav_or_dialogue, modal, args.outfile)
 
+if __name__ == "__main__":
+    main()
