@@ -140,7 +140,7 @@ def train_and_test(train_loader, test_loader, model, optimizer, num_epochs, wav_
 
 
                 if wav_or_dialogue == 'wav':
-                    test_label = test_label
+                    test_label = torch.argmax(test_label, dim=1)
                     total += np.sum(np.shape(test_label))
                 elif wav_or_dialogue == 'dialogue':
                     test_label_original = test_label[:, :predict.shape[1]]

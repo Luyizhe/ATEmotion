@@ -78,11 +78,11 @@ class LoadSingleWav(Dataset):
             text_mask[:text_len] = 1
 
         # 将label处理为统一长度方便放入batch。
-        label=self.videoLabels[vid]
-
+        labels=self.videoLabels[vid]
+        labels=functional.one_hot(torch.from_numpy(np.array(labels).astype(np.int64)), num_classes=self.label_classes).type(torch.FloatTensor)
         #labels=functional.one_hot(torch.from_numpy(np.array(label).astype(np.int64)), num_classes=self.label_classes)
 
-        return audio_feat, text_feat, audio_mask,text_mask, label, audio_len, text_len
+        return audio_feat, text_feat, audio_mask,text_mask, labels, audio_len, text_len
 
     def __len__(self):
         if self.train_or_test == 'train':

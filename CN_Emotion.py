@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument('--criterion', type=str, default="CrossEntropyLoss", help='choose "MSELoss" "CrossEntropyLoss"')
     parser.add_argument('--loss_delta', type=float, default=1, help='change loss proportion')
     parser.add_argument('--label_classes', type=float, default=4, help='the numbers of classifications')
-    parser.add_argument('--wav_or_dialogue', type=str, default='dialogue', help='modeling unit is wav or dialogue')
+    parser.add_argument('--wav_or_dialogue', type=str, default='wav', help='modeling unit is wav or dialogue')
     args = parser.parse_args()
     modal = args.modal  # "text","audio","multi"
     fusion = args.fusion  # "AT_fusion" "Concat" "ADD"
