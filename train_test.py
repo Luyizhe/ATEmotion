@@ -41,15 +41,16 @@ def train_and_test(train_loader, test_loader, model, optimizer, num_epochs, wav_
         text_confusion_Ypre = []
         audio_confusion_Ypre = []
         model.train()
+
         for i, features in enumerate(train_loader):
             audio_train, text_train, train_audio_mask, train_text_mask, train_label, train_audio_seqlen, train_text_seqlen= features
             if modal in ['text', 'multi']:
-                train_text_mask = train_text_mask.to(torch.int).to(device)
-                train_text_seqlen = train_text_seqlen.to(torch.int).to(device)
+                train_text_mask = train_text_mask.to(torch.bool).to(device)
+                train_text_seqlen = train_text_seqlen.to(torch.int).to('cpu')
                 text_train = text_train.to(device)
-            elif modal in ['audio', 'multi']:
-                train_audio_mask = train_audio_mask.to(torch.int).to(device)
-                train_audio_seqlen = train_audio_seqlen.to(torch.int).to(device)
+            if modal in ['audio', 'multi']:
+                train_audio_mask = train_audio_mask.to(torch.bool).to(device)
+                train_audio_seqlen = train_audio_seqlen.to(torch.int).to('cpu')
                 audio_train = audio_train.to(device)
             train_label = train_label.to(device)
 
@@ -102,12 +103,12 @@ def train_and_test(train_loader, test_loader, model, optimizer, num_epochs, wav_
             for i, features in enumerate(test_loader):
                 audio_test, text_test, test_audio_mask, test_text_mask, test_label, test_audio_seqlen, test_text_seqlen = features
                 if modal in ['text', 'multi']:
-                    test_text_mask = test_text_mask.to(torch.int).to(device)
-                    test_text_seqlen = test_text_seqlen.to(torch.int).to(device)
+                    test_text_mask = test_text_mask.to(torch.bool).to(device)
+                    test_text_seqlen = test_text_seqlen.to(torch.int).to('cpu')
                     text_test = text_test.to(device)
-                elif modal in ['audio', 'multi']:
-                    test_audio_mask = test_audio_mask.to(torch.int).to(device)
-                    test_audio_seqlen = test_audio_seqlen.to(torch.int).to(device)
+                if modal in ['audio', 'multi']:
+                    test_audio_mask = test_audio_mask.to(torch.bool).to(device)
+                    test_audio_seqlen = test_audio_seqlen.to(torch.int).to('cpu')
                     audio_test = audio_test.to(device)
                 test_label = test_label.to(device)
 
@@ -150,6 +151,7 @@ def train_and_test(train_loader, test_loader, model, optimizer, num_epochs, wav_
                 total=total.item()
 
                 if wav_or_dialogue=='wav':
+
                     correct += (predict == test_label).sum()
                     if modal == 'multi':
                         text_correct += (text_predict == test_label).sum()
@@ -170,11 +172,11 @@ def train_and_test(train_loader, test_loader, model, optimizer, num_epochs, wav_
 
                 if wav_or_dialogue=='dialogue':
                     for i in range(predict.shape[0]):
-                        confusion_Ypre.extend(predict[i][:test_seqlen[i]].numpy())
-                        confusion_Ylabel.extend(test_label[i][:test_seqlen[i]].numpy())
+                        confusion_Ypre.extend(predict[i][:test_seqlen[i]].cpu().numpy())
+                        confusion_Ylabel.extend(test_label[i][:test_seqlen[i]].cpu().numpy())
                         if modal=='multi':
-                            text_confusion_Ypre.extend(text_predict[i][:test_seqlen[i]].numpy())
-                            audio_confusion_Ypre.extend(audio_predict[i][:test_seqlen[i]].numpy())
+                            text_confusion_Ypre.extend(text_predict[i][:test_seqlen[i]].cpu().numpy())
+                            audio_confusion_Ypre.extend(audio_predict[i][:test_seqlen[i]].cpu().numpy())
                 elif wav_or_dialogue=='wav':
                     confusion_Ypre.extend(predict.cpu().numpy())
                     confusion_Ylabel.extend(test_label.cpu().numpy())
@@ -212,6 +214,7 @@ def train_and_test(train_loader, test_loader, model, optimizer, num_epochs, wav_
             100 * (audio_correct / total), 100 * (text_correct / total)))
 
     print("Best Valid Accuracy: %0.2f%%" % (100 * Best_Valid))
+    print(acc_matrix)
     if modal=='multi':
         print("Best Text Valid Accuracy: %0.2f%%" % (100 * text_Best_Valid))
         print("Best Audio Valid Accuracy: %0.2f%%" % (100 * audio_Best_Valid))

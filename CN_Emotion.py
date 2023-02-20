@@ -10,14 +10,14 @@ from train_test import *
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--outfile', type=str, default="tmp.txt", help='output confusion matrix to a file')
-    parser.add_argument('--modal', type=str, default="multi", help='choose "text","audio","multi"')
+    parser.add_argument('--modal', type=str, default="audio", help='choose "text","audio","multi"')
     parser.add_argument('--fusion', type=str, default="ADD",
                         help='choose "AT_fusion" "Concat" "ADD" ,or "ADD" "Dot" in try models')
     parser.add_argument('--dataset', type=str, default="ground_truth",
                         help='choose "google_cloud" "speech_recognition" "ground_truth" "resources" or "v" "a" "d"')
     parser.add_argument('--criterion', type=str, default="CrossEntropyLoss", help='choose "MSELoss" "CrossEntropyLoss"')
     parser.add_argument('--loss_delta', type=float, default=1, help='change loss proportion')
-    parser.add_argument('--label_classes', type=float, default=3, help='the numbers of classifications')
+    parser.add_argument('--label_classes', type=float, default=4, help='the numbers of classifications')
     parser.add_argument('--wav_or_dialogue', type=str, default='dialogue', help='modeling unit is wav or dialogue')
     args = parser.parse_args()
     modal = args.modal  # "text","audio","multi"
@@ -31,6 +31,8 @@ if __name__ == "__main__":
     if wav_or_dialogue=='dialogue':
         batch_data_train = LoadData.LoadDialogueWav(label_classes,modal,'train')
         batch_data_test = LoadData.LoadDialogueWav(label_classes, modal, 'test')
+        # batch_data_train = LoadData.LoadDiaData('train')
+        # batch_data_test = LoadData.LoadDiaData('test')
     elif wav_or_dialogue == 'wav':
         batch_data_train = LoadData.LoadSingleWav(label_classes, modal, 'train')
         batch_data_test = LoadData.LoadSingleWav(label_classes, modal, 'test')

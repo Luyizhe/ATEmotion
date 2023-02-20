@@ -98,9 +98,12 @@ class LoadDialogueWav(Dataset):
         self.filename=file.name
         _, self.IDs_dialogue, self.Speaker, _, self.videoLabels_dialogue, _, self.videoText_dialogue, _, self.videoAudio_dialogue, self.Sentence, \
             _, _,self.TrainVid_dialogue, self.TestVid_dialogue= pickle.load(file, encoding='latin1')
+        _, _, _, _, _, _, _, self.trainVid, self.testVid = pickle.load(open('IEMOCAP_features_BertText_4Class.pkl', 'rb'), encoding='latin1')
         self.indexes = np.arange(len(self.IDs_dialogue))
-        self.trainVid = list(self.TrainVid_dialogue)
-        self.testVid = list(self.TestVid_dialogue)
+        # self.trainVid = list(self.TrainVid_dialogue)
+        # self.testVid = list(self.TestVid_dialogue)
+        self.trainVid = list(self.trainVid)
+        self.testVid = list(self.testVid)
         self.text_max = 0
         self.audio_max=0
         self.train_or_test = train_or_test
@@ -150,7 +153,6 @@ class LoadDialogueWav(Dataset):
                 [np.shape(self.videoText_dialogue[vid])[0], np.shape(self.videoText_dialogue[vid])[1], 1])
             text_len = len(self.videoText_dialogue[vid])
             gap = self.text_max - text_len
-
             text_feat = np.pad(tmp, [(0, gap), (0, 0), (0, 0)], mode='constant')
             text_feat, text_len = torch.tensor(text_feat[:, :, 0]), torch.tensor(text_len)
             text_mask = np.zeros(np.shape(text_feat)[0])
@@ -160,8 +162,9 @@ class LoadDialogueWav(Dataset):
             [np.shape(self.videoLabels_dialogue[vid])[0], 1])
         # 将label处理为统一长度方便放入batch。
         labels = np.pad(tmp, [(0, gap), (0, 0)], mode='constant', constant_values=(3, 3))
-        labels = torch.LongTensor(labels)
 
+        labels = torch.LongTensor(labels)
+        labels=functional.one_hot(labels, num_classes=self.label_classes).squeeze(1).type(torch.FloatTensor)
         #labels=functional.one_hot(torch.from_numpy(np.array(label).astype(np.int64)), num_classes=self.label_classes)
 
         return audio_feat, text_feat, audio_mask,text_mask, labels, audio_len, text_len
@@ -172,6 +175,81 @@ class LoadDialogueWav(Dataset):
         if self.train_or_test == 'test':
             return len(self.testVid)
 
+
+class LoadDiaData(Dataset):
+    def __init__(self, train_or_test,dataset="ground_truth",classify='emotion'):
+        file = open('IEMOCAP_features_BertText_4Class.pkl', 'rb')   
+        self.filename=file.name
+        self.videoIDs, self.videoSpeakers, self.videoLabels, self.videoText, self.videoAudio, self.videoVisual, \
+        self.videoSentence, self.trainVid, self.testVid = pickle.load(file, encoding='latin1')
+        self.indexes = np.arange(len(self.videoIDs))
+        self.trainVid = list(self.trainVid)
+        self.testVid = list(self.testVid)
+        self.text_audio_max = 0
+        self.train_or_test = train_or_test
+        for vid in self.trainVid:
+            if len(self.videoText[vid]) > self.text_audio_max:
+                self.text_audio_max = len(self.videoText[vid])
+
+    def __getitem__(self, batch_index):
+
+        indexes = self.indexes[batch_index]
+        # 处理返回各种特征值
+
+        if self.train_or_test == 'train':
+            vid = self.trainVid[indexes]
+        if self.train_or_test == 'test':
+            self.testVid.sort()
+            vid = self.testVid[indexes]
+        # print(self.testVid)
+        # print(vid)
+        tmp = np.array(self.videoAudio[vid]).reshape(
+            [np.shape(self.videoAudio[vid])[0], np.shape(self.videoAudio[vid])[1], 1])
+        # 将音频特征处理为统一长度方便放入batch。
+        audio_len = len(self.videoAudio[vid])
+        gap = self.text_audio_max - audio_len
+        audio_feat = np.pad(tmp, [(0, gap), (0, 0), (0, 0)], mode='constant')
+        audio = [torch.tensor(audio_feat[:, :, 0]), torch.tensor(audio_len)]
+
+        # 将文本特征处理为统一长度方便放入batch。
+
+        # if self.filename=="IEMOCAP_features_BertText4_ASR.pkl":
+        #     print(np.array(self.videoText[vid]).shape)
+
+        self.videoText[vid]=np.array(self.videoText[vid])
+        if len(np.shape(self.videoText[vid]))!=2:
+            self.videoText[vid]=self.videoText[vid].squeeze()
+        # print(self.videoText[vid])
+        #print(np.shape(self.videoText[vid]))
+        # exit()
+        tmp = np.array(self.videoText[vid]).reshape(
+            [np.shape(self.videoText[vid])[0], np.shape(self.videoText[vid])[1], 1])
+        text_len = len(self.videoText[vid])
+        gap = self.text_audio_max - text_len
+        text_feat = np.pad(tmp, [(0, gap), (0, 0), (0, 0)], mode='constant')
+        text = [torch.tensor(text_feat[:, :, 0]), torch.tensor(text_len)]
+        # 将label处理为统一长度方便放入batch。
+        tmp = np.array(self.videoLabels[vid]).reshape(
+            [np.shape(self.videoLabels[vid])[0], 1])
+        labels = np.pad(tmp, [(0, gap), (0, 0)], mode='constant', constant_values=(3, 3))
+        labels = torch.LongTensor(labels)
+        mask = np.zeros(np.shape(audio[0])[0])
+        mask[:text[1]] = 1
+        # print("audio shape:",audio[0].shape)
+        # print("text shape:", text[0].shape)
+        # print("maks shape",mask.shape)
+        # print("labels shape",labels.shape)
+        # print("seqlen",text[1])
+        #print(mask)
+        labels=functional.one_hot(labels, num_classes=4).squeeze(1)
+        return audio[0].type(torch.FloatTensor), text[0].type(torch.FloatTensor), mask,mask, labels.type(torch.FloatTensor), audio[0],text[1]
+    
+    def __len__(self):
+        if self.train_or_test == 'train':
+            return len(self.trainVid)
+        if self.train_or_test == 'test':
+            return len(self.testVid)
+        
 if __name__ == '__main__':
     batch_data_train = LoadDialogueWav(3,'multi','train', "feature.pkl")
     train_loader = DataLoader(dataset=batch_data_train, batch_size=2, drop_last=False, shuffle=True)

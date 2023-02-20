@@ -11,6 +11,7 @@ def opensmile_extract(opensmile_path ,opensmile_config_path,wav_path,csv_tmp_fil
         tmp_path='tmp.csv'
     else:
         tmp_path=csv_tmp_file
+    print(opensmile_path+' -C '+opensmile_config_path+' -I '+wav_path+' -O '+tmp_path)
     os.system(opensmile_path+' -C '+opensmile_config_path+' -I '+wav_path+' -O '+tmp_path)
     logging.info('Opensmile extract '+wav_path+' features done')
 
@@ -88,6 +89,7 @@ class ExtractFeature():
             if self.trainVid_dialogue==None or self.testVid_dialogue==None:
                 self.TrainVid_dialogue = self.IDs_dialogue[:int(0.7 * len(self.IDs_dialogue))]
                 self.TestVid_dialogue = self.IDs_dialogue[int(0.7 * len(self.IDs_dialogue)):]
+
     def create_IDs(self):
         wav_scp = open(self.wav_scp, 'r')
         for wav in wav_scp.readlines():
@@ -99,6 +101,7 @@ class ExtractFeature():
                 dialogue_id, wavs = dialogue_wav_pair.strip().split('\t')
                 self.IDs_dialogue.append(dialogue_id)
             dialogue.close()
+
     def audio_feature_extract(self):
         wav_scp=open(self.wav_scp,'r')
         for wav in wav_scp.readlines():
@@ -118,7 +121,7 @@ class ExtractFeature():
                 self.videoAudio_dialogue[dialogue_id]=np.array(tmp_feature)
             dialogue.close()
 
-    def text_feature_extract(self,trans,pretrain_path=r"E:\NLP\SpeechEmotion\demo\bert-base-uncased"):
+    def text_feature_extract(self,trans,pretrain_path=r"../bert-base-uncased"):
         from transformers import AutoTokenizer, AutoModel
         tokenizer = AutoTokenizer.from_pretrained(pretrain_path)
         model = AutoModel.from_pretrained(pretrain_path)
@@ -128,6 +131,7 @@ class ExtractFeature():
             self.Sentence[vid]=sentence
             DicID = tokenizer(self.Sentence[vid], return_tensors="pt")
             self.videoText[vid] = model(DicID['input_ids'])[0].detach().numpy()
+            print(sentence+' Extracted Success')
         if self.dialogue_file != None:
             dialogue = open(self.dialogue_file, 'r')
             for dialogue_wav_pair in dialogue.readlines():
@@ -165,22 +169,20 @@ class ExtractFeature():
             vid, speaker_ID = label.strip().split('\t')
             self.Speaker[vid] = speaker_ID
 
-    def done(self,output_file=r'.\feature.pkl'):
+    def done(self,output_file=r'./feature.pkl'):
         pickle.dump(
             (self.IDs, self.IDs_dialogue, self.Speaker, self.videoLabels, self.videoLabels_dialogue, self.videoText, self.videoText_dialogue,self.videoAudio, self.videoAudio_dialogue, self.Sentence,
              self.TrainVid, self.TestVid,self.TrainVid_dialogue, self.TestVid_dialogue),
             open(output_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
 if __name__=='__main__':
-    #opensmile_path=r'D:\software\openSMILE\SMILExtract.exe'
-    opensmile_path=r'E:\NLP\SpeechEmotion\demo\openSMILE\SMILExtract.exe'
-    #opensmile_config_path=r'D:\software\openSMILE\config\IS09_emotion.conf'
-    opensmile_config_path=r'E:\NLP\SpeechEmotion\demo\openSMILE\config\IS09_emotion.conf'
-    wav_scp=r'E:\NLP\SpeechEmotion\dataset\extract_script_test\test.scp'
-    dialogue_scp=r'E:\NLP\SpeechEmotion\dataset\extract_script_test\dialogue.scp'
-    wav_label=r'E:\NLP\SpeechEmotion\dataset\extract_script_test\label.scp'
-    trans=r'E:\NLP\SpeechEmotion\dataset\extract_script_test\trans.scp'
-    feature_file=r'.\feature.pkl'
+    opensmile_path=r'../opensmile-2.3.0//SMILExtract'
+    opensmile_config_path=r'../opensmile-2.3.0//config/IS09_emotion.conf'
+    wav_scp=r'./wav.scp'
+    dialogue_scp=r'./dialogue.scp'
+    wav_label=r'./label.scp'
+    trans=r'./trans.scp'
+    feature_file=r'./feature.pkl'
     extractor=ExtractFeature(['audio'],opensmile_path,opensmile_config_path,wav_scp=wav_scp,dialogue_file=dialogue_scp)
     extractor.audio_feature_extract()
     extractor.text_feature_extract(trans)

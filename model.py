@@ -9,7 +9,7 @@ import os
 
 torch.set_printoptions(threshold=np.inf)
 dropout = 0.2
-batch_size = 2
+batch_size = 20
 max_audio_length = 700
 max_text_length = 100
 epochs = 150
@@ -112,10 +112,10 @@ class Dialogue_Model(nn.Module):
 
         if Modal in ['audio','multi']:
             # input_audio = Audio_Features
-            mean = torch.mean(Audio_Features, dim=(1))
-            var = torch.var(Audio_Features, dim=(1))
-            div = torch.sqrt(var + 1e-05)
-            Audio_Features = (Audio_Features - mean[:, None, :]) / div[:, None, :]
+            # mean = torch.mean(Audio_Features, dim=(1))
+            # var = torch.var(Audio_Features, dim=(1))
+            # div = torch.sqrt(var + 1e-05)
+            # Audio_Features = (Audio_Features - mean[:, None, :]) / div[:, None, :]
             input_audio = self.IS09_Linear(Audio_Features)
 
             Audio_Padding = torch.nn.utils.rnn.pack_padded_sequence(input_audio, Seqlen,
@@ -128,7 +128,7 @@ class Dialogue_Model(nn.Module):
 
             Audio_Attention_Out, Audio_Attention_Weight = self.Attention_audio(Audio_Contribute, Audio_Contribute,
                                                                                Audio_Contribute,
-                                                                               key_padding_mask=(1 - Audio_MinMask),
+                                                                               key_padding_mask=(~Audio_MinMask),
                                                                                need_weights=True)
 
             Audio_Dense1 = torch.tanh(self.Linear_audio(Audio_Attention_Out.permute([1, 0, 2])))
@@ -152,7 +152,7 @@ class Dialogue_Model(nn.Module):
             # Text_Attention_Out = self.transformer_encoder_text(Text_Contribute, src_key_padding_mask=(1 - Text_MinMask))
             Text_Attention_Out, Text_Attention_Weight = self.Attention_text(Text_Contribute, Text_Contribute,
                                                                             Text_Contribute,
-                                                                            key_padding_mask=(1 - Text_MinMask),
+                                                                            key_padding_mask=(~Text_MinMask),
                                                                             need_weights=True)
 
             Text_Dense1 = torch.tanh(self.Linear_text(Text_Attention_Out.permute([1, 0, 2])))
@@ -228,7 +228,7 @@ class Sentence_Model(Dialogue_Model):
             new_input = input_text[:, :GRU_text_Out.shape[0], :].permute([1, 0, 2])
             # #print(new_input.shape)
             attention_out_text, _ = self.Attention2(new_input, new_input, new_input,
-                                                    key_padding_mask=(1 - MinMask_text).type(torch.bool))
+                                                    key_padding_mask=(~MinMask_text).type(torch.bool))
             attention_gru_text = attention_out_text
             GRUfusion_out_text = attention_gru_text.permute([1, 0, 2])
             Pooling_text = GRUfusion_out_text[0].mean(0)[None, :]
@@ -257,7 +257,7 @@ class Sentence_Model(Dialogue_Model):
 
             # ################两种设置QKV的方式###########################
             attention_out_audio, _ = self.Attention1(Contribute_audio, Contribute_audio, Contribute_audio,
-                                                     key_padding_mask=(1 - MinMask_audio).type(torch.bool))
+                                                     key_padding_mask=(~MinMask_audio).type(torch.bool))
             attention_gru_audio = attention_out_audio
             GRUfusion_out_audio = attention_gru_audio.permute([1, 0, 2])
 
