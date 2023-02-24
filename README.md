@@ -51,11 +51,11 @@
   model.inference()                                       #测试模型，数据依然是'feature.pkl'中的数据，不过支持自定义模型文件。
   
 ```
-wav.scp 每一行格式：ID\t音频文件路径
+  - wav.scp 每一行格式：ID\t音频文件路径
 
-label.scp 每一行格式：ID\t情感标签
+  - label.scp 每一行格式：ID\t情感标签
 
-trans.scp 每一行格式：ID\tWav对应文本内容
+  - trans.scp 每一行格式：ID\tWav对应文本内容
 
 
 ## Dialogue
