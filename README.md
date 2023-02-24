@@ -48,7 +48,9 @@
   
 ```
 wav.scp 每一行格式：ID\t音频文件路径
+
 label.scp 每一行格式：ID\t情感标签
+
 trans.scp 每一行格式：ID\tWav对应文本内容
 
 
