@@ -45,7 +45,8 @@
   extractor.done(feature_file)
   
 训练模型，示例：
-  model = ATEmotion.CN_Emotion.Model(modal='audio',fusion='ADD',label_classes=4,wav_or_dialogue='wav',feature='feature.pkl')  #构建模型的类
+  model = ATEmotion.CN_Emotion.Model(modal='audio', fusion='ADD', label_classes=4, wav_or_dialogue='wav',
+                                   feature='feature.pkl') #构建模型的类
   model.train()                                           #训练模型
   model.inference()                                       #测试模型，数据依然是'feature.pkl'中的数据，不过支持自定义模型文件。
   
