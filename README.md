@@ -27,7 +27,7 @@
 - 为了让单模态本身的特征差异化足够大，所以进行了logits层的融合，并且增加了perspective loss以加强各模态的特点。
 ### 用法
 ```
-示例（音频使用IS09特征，文本使用bert特征）：
+提取特征，示例（音频使用IS09特征，文本使用bert特征）：
   import ATEmotion
   opensmile_path = r'.\openSMILE\SMILExtract'             #opensmile路径
   opensmile_config_path = r'.\openSMILE\config\IS09_emotion.conf'   #opensmile IS09特征的配置路径
@@ -36,12 +36,16 @@
   trans = r'.\trans.scp'
   feature_file = r'.\feature.pkl'                         #特征保存的路径
   pretrained_model = r'.\bert-base-uncased'               #transformers预训练模型的路径
-  extractor = ATEmotion.extract_feature.ExtractFeature(['audio'], opensmile_path, opensmile_config_path, 
-                                                    wav_scp=wav_scp)
+  extractor = ATEmotion.extract_feature.ExtractFeature(['audio'], opensmile_path=opensmile_path,
+                                                     opensmile_config_path=opensmile_config_path, wav_scp=wav_scp,
+                                                     dialogue_file=dialogue_scp)
   extractor.audio_feature_extract()
   extractor.text_feature_extract(trans,pretrain_path=pretrained_model)
   extractor.convert_label_file(wav_label)
   extractor.done(feature_file)
+  
+训练模型，示例：
+  
 ```
 wav.scp 每一行格式：ID\t音频文件路径
 label.scp 每一行格式：ID\t情感标签
