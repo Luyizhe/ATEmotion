@@ -37,26 +37,26 @@
   trans = r'.\trans.scp'
   feature_file = r'.\feature.pkl'                         #特征保存的路径
   pretrained_model = r'.\bert-base-uncased'               #transformers预训练模型的路径
-  extractor = ATEmotion.extract_feature.ExtractFeature(['audio'], opensmile_path=opensmile_path,
+  extractor = ATEmotion.extract_feature.ExtractFeature(modal='multi', opensmile_path=opensmile_path,
                                                      opensmile_config_path=opensmile_config_path, wav_scp=wav_scp,
-                                                     dialogue_file=dialogue_scp)
+                                                     dialogue_file=dialogue_scp)  #modal可以为'audio','text','multi'分别代表使用音频，文本，多模态。
   extractor.audio_feature_extract()
   extractor.text_feature_extract(trans,pretrain_path=pretrained_model)
   extractor.convert_label_file(wav_label)
   extractor.done(feature_file)
   
 训练模型，示例：
-  model = ATEmotion.CN_Emotion.Model(modal='audio', fusion='ADD', label_classes=4, wav_or_dialogue='wav',
+  model = ATEmotion.CN_Emotion.Model(modal='multi', fusion='ADD', label_classes=4, wav_or_dialogue='wav',
                                    feature='feature.pkl') #构建模型的类
   model.train()                                           #训练模型
   model.inference()                                       #测试模型，数据依然是'feature.pkl'中的数据，不过支持自定义模型文件。
   
 ```
-wav.scp 每一行格式：ID\t音频文件路径
+wav.scp       每一行格式：ID\t音频文件路径
 
-label.scp 每一行格式：ID\t情感标签
+label.scp     每一行格式：ID\t情感标签
 
-trans.scp 每一行格式：ID\tWav对应文本内容
+trans.scp     每一行格式：ID\tWav对应文本内容
 
 
 ## 对话的情感识别
@@ -69,11 +69,12 @@ trans.scp 每一行格式：ID\tWav对应文本内容
   opensmile_path = r'.\openSMILE\SMILExtract'             #opensmile路径
   opensmile_config_path = r'.\openSMILE\config\IS09_emotion.conf'   #opensmile IS09特征的配置路径
   wav_scp = r'.\wav.scp'
+  dialogue_scp = r'.\dialogue.scp'
   wav_label = r'.\label.scp'
   trans = r'.\trans.scp'
   feature_file = r'.\feature.pkl'                         #特征保存的路径
   pretrained_model = r'.\bert-base-uncased'               #transformers预训练模型的路径
-  extractor = ATEmotion.extract_feature.ExtractFeature(modal='audio', opensmile_path=opensmile_path,
+  extractor = ATEmotion.extract_feature.ExtractFeature(modal='multi', opensmile_path=opensmile_path,
                                                      opensmile_config_path=opensmile_config_path, wav_scp=wav_scp,
                                                      dialogue_file=dialogue_scp)  #modal可以为'audio','text','multi'分别代表使用音频，文本，多模态。
   extractor.audio_feature_extract()
@@ -88,3 +89,10 @@ trans.scp 每一行格式：ID\tWav对应文本内容
   model.inference()                                       #测试模型，数据依然是'feature.pkl'中的数据，不过支持自定义模型文件。
   
 ```
+wav.scp       每一行格式：ID\t音频文件路径
+
+label.scp     每一行格式：ID\t情感标签
+
+trans.scp     每一行格式：ID\tWav对应文本内容
+
+dialogue.scp  每一行格式：对话ID\t该对话下按照顺序的单个句子的ID
