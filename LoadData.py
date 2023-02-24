@@ -100,8 +100,6 @@ class LoadDialogueWav(Dataset):
             _, _,self.TrainVid_dialogue, self.TestVid_dialogue= pickle.load(file, encoding='latin1')
         _, _, _, _, _, _, _, self.trainVid, self.testVid = pickle.load(open('IEMOCAP_features_BertText_4Class.pkl', 'rb'), encoding='latin1')
         self.indexes = np.arange(len(self.IDs_dialogue))
-        # self.trainVid = list(self.TrainVid_dialogue)
-        # self.testVid = list(self.TestVid_dialogue)
         self.trainVid = list(self.trainVid)
         self.testVid = list(self.testVid)
         self.text_max = 0

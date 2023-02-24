@@ -185,6 +185,6 @@ if __name__=='__main__':
     feature_file=r'./feature.pkl'
     extractor=ExtractFeature(['audio'],opensmile_path,opensmile_config_path,wav_scp=wav_scp,dialogue_file=dialogue_scp)
     extractor.audio_feature_extract()
-    extractor.text_feature_extract(trans)
+    extractor.text_feature_extract(trans,pretrain_path=r"../bert-base-uncased")
     extractor.convert_label_file(wav_label)
     extractor.done(feature_file)
