@@ -34,7 +34,7 @@ class ExtractFeature():
     def __init__(self,modal='audio',opensmile_path=None,opensmile_config_path=None,csv_tmp_file=None,trainVid=None,testVid=None,wav_scp=None,dialogue_file=None,trainVid_dialogue=None,testVid_dialogue=None):
         if wav_scp==None:
             raise KeyError('Please provide wav_scp file path')
-        if 'audio' in modal:
+        if modal in ['audio','multi']:
             if opensmile_path==None:
                 raise ValueError('Please provide correct opensmile exe path')
             else:
