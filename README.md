@@ -69,7 +69,7 @@ trans.scp     每一行格式：ID\tWav对应文本内容
   opensmile_path = r'.\openSMILE\SMILExtract'             #opensmile路径
   opensmile_config_path = r'.\openSMILE\config\IS09_emotion.conf'   #opensmile IS09特征的配置路径
   wav_scp = r'.\wav.scp'
-  dialogue_scp = r'.\dialogue.scp'
+  dialogue_scp = r'.\dialogue.scp'                        #相比单个句子的情感识别多出的文件。
   wav_label = r'.\label.scp'
   trans = r'.\trans.scp'
   feature_file = r'.\feature.pkl'                         #特征保存的路径
